@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ctrl+Alt+Quest — Gamifica tu productividad</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold: #f5a623;
+      --gold-dark: #c47d0e;
+      --purple: #2d1b69;
+      --purple-dark: #1a0f3d;
+      --purple-mid: #3d2490;
+      --glow-gold: 0 0 20px rgba(245,166,35,0.6), 0 0 40px rgba(245,166,35,0.3);
+      --glow-purple: 0 0 20px rgba(93,63,211,0.6);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--purple-dark);
+      color: #e8d5b7;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    .pixel-font { font-family: 'Press Start 2P', monospace; }
+
+    /* === ANIMATED STARS BG === */
+    .stars-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(45,27,105,0.8) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(61,36,144,0.5) 0%, transparent 50%),
+        #0d0820;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+      animation: twinkle var(--d, 3s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.4); }
+    }
+
+    /* === PIXEL GRID OVERLAY === */
+    .pixel-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      background-image:
+        linear-gradient(rgba(93,63,211,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(93,63,211,0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    /* === LAYOUT === */
+    .page { position: relative; z-index: 2; }
+
+    /* === NAVBAR === */
+    nav {
+      padding: 1.2rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid rgba(245,166,35,0.2);
+      backdrop-filter: blur(6px);
+      background: rgba(13,8,32,0.6);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: var(--gold);
+      text-shadow: var(--glow-gold);
+      letter-spacing: 1px;
+    }
+
+    .nav-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(232,213,183,0.5);
+    }
+
+    /* === HERO === */
+    .hero {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(245,166,35,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* pixel shield frame */
+    .shield-frame {
+      width: 180px;
+      height: 180px;
+      position: relative;
+      margin-bottom: 2.5rem;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-14px); }
+    }
+
+    .shield-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 24px rgba(245,166,35,0.7)) drop-shadow(0 0 48px rgba(245,166,35,0.3));
+      image-rendering: pixelated;
+    }
+
+    /* Fallback shield SVG si no carga imagen */
+    .shield-svg {
+      width: 160px;
+      height: 160px;
+      filter: drop-shadow(0 0 24px rgba(245,166,35,0.7));
+    }
+
+    .hero-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(1.1rem, 4vw, 2.2rem);
+      color: var(--gold);
+      text-shadow: var(--glow-gold);
+      line-height: 1.6;
+      margin-bottom: 0.8rem;
+      animation: fadeInDown 0.8s ease both;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-sub {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #c8b89a;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      animation: fadeInDown 0.9s 0.1s ease both;
+    }
+
+    .hero-desc {
+      max-width: 560px;
+      font-size: 1.15rem;
+      line-height: 1.7;
+      color: #b0a090;
+      margin-bottom: 3rem;
+      animation: fadeInDown 1s 0.2s ease both;
+    }
+
+    /* === CTA BUTTON === */
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.75rem;
+      padding: 1.1rem 2.4rem;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #1a0f3d;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      position: relative;
+      transition: all 0.15s;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      animation: fadeInDown 1s 0.3s ease both;
+      box-shadow: var(--glow-gold);
+    }
+
+    .btn-download:hover {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 0 30px rgba(245,166,35,0.9), 0 0 60px rgba(245,166,35,0.4);
+    }
+
+    .btn-download:active { transform: scale(0.97); }
+
+    .btn-download .icon {
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    /* === VERSION BADGE === */
+    .version-tag {
+      margin-top: 1.2rem;
+      font-size: 0.75rem;
+      color: rgba(232,213,183,0.4);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      animation: fadeInDown 1s 0.4s ease both;
+    }
+
+    /* === DIVIDER === */
+    .pixel-divider {
+      width: 100%;
+      height: 4px;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--gold) 0px, var(--gold) 8px,
+        transparent 8px, transparent 16px
+      );
+      opacity: 0.35;
+      margin: 0;
+    }
+
+    /* === FEATURES === */
+    .features {
+      padding: 5rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.7rem, 2vw, 1rem);
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 0.6rem;
+      text-shadow: var(--glow-gold);
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: #8a7a6a;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 3.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: linear-gradient(135deg, rgba(45,27,105,0.6) 0%, rgba(26,15,61,0.8) 100%);
+      border: 1px solid rgba(245,166,35,0.2);
+      padding: 2rem 1.8rem;
+      position: relative;
+      transition: all 0.25s;
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 16px; height: 16px;
+      background: var(--gold);
+      clip-path: polygon(0 0, 100% 100%, 100% 0);
+      opacity: 0.6;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(245,166,35,0.6);
+      background: linear-gradient(135deg, rgba(61,36,144,0.7) 0%, rgba(45,27,105,0.9) 100%);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(245,166,35,0.15);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .feature-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      color: var(--gold);
+      margin-bottom: 0.8rem;
+      line-height: 1.8;
+    }
+
+    .feature-desc {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #a09080;
+    }
+
+    /* === HOW IT WORKS === */
+    .how {
+      padding: 5rem 2rem;
+      background: linear-gradient(180deg, transparent, rgba(45,27,105,0.3), transparent);
+    }
+
+    .steps {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      padding: 1.8rem 0;
+      position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 28px;
+      top: 72px;
+      width: 2px;
+      height: calc(100% - 40px);
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(245,166,35,0.5) 0px, rgba(245,166,35,0.5) 6px,
+        transparent 6px, transparent 12px
+      );
+    }
+
+    .step-num {
+      width: 58px;
+      height: 58px;
+      min-width: 58px;
+      background: var(--purple-mid);
+      border: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1rem;
+      color: var(--gold);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      box-shadow: var(--glow-gold);
+    }
+
+    .step-content h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #e8d5b7;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .step-content p {
+      font-size: 1rem;
+      color: #8a7a6a;
+      line-height: 1.6;
+    }
+
+    /* === STATS STRIP === */
+    .stats {
+      padding: 3rem 2rem;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .stat-item {
+      flex: 1;
+      min-width: 160px;
+      text-align: center;
+      padding: 1.5rem;
+      border-right: 1px solid rgba(245,166,35,0.15);
+    }
+    .stat-item:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.2rem;
+      color: var(--gold);
+      text-shadow: var(--glow-gold);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #6a5a4a;
+    }
+
+    /* === FINAL CTA === */
+    .final-cta {
+      text-align: center;
+      padding: 6rem 2rem;
+      position: relative;
+    }
+
+    .final-cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(93,63,211,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(0.8rem, 2.5vw, 1.3rem);
+      color: #e8d5b7;
+      margin-bottom: 1rem;
+      line-height: 1.8;
+    }
+
+    .cta-title span { color: var(--gold); text-shadow: var(--glow-gold); }
+
+    .cta-sub {
+      font-size: 1.1rem;
+      color: #7a6a5a;
+      margin-bottom: 2.5rem;
+      letter-spacing: 1px;
+    }
+
+    /* === REQUIREMENTS === */
+    .reqs {
+      max-width: 560px;
+      margin: 2rem auto 0;
+      background: rgba(13,8,32,0.7);
+      border: 1px solid rgba(245,166,35,0.15);
+      padding: 1.5rem 2rem;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+
+    .reqs-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.5rem;
+      color: var(--gold);
+      margin-bottom: 1rem;
+      letter-spacing: 1px;
+    }
+
+    .req-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.9rem;
+      color: #8a7a6a;
+      padding: 0.3rem 0;
+    }
+
+    .req-item::before {
+      content: '▸';
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    /* === FOOTER === */
+    footer {
+      border-top: 2px solid rgba(245,166,35,0.1);
+      padding: 2rem;
+      text-align: center;
+      background: rgba(10,6,24,0.8);
+    }
+
+    .footer-logo {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.5rem;
+      color: rgba(245,166,35,0.4);
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-text {
+      font-size: 0.85rem;
+      color: rgba(232,213,183,0.25);
+      letter-spacing: 1px;
+    }
+
+    /* === SCANLINE effect === */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.04) 2px,
+        rgba(0,0,0,0.04) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* === SCROLL REVEAL === */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 640px) {
+      .hero { padding: 3rem 1.2rem 2rem; }
+      .stat-item { border-right: none; border-bottom: 1px solid rgba(245,166,35,0.1); }
+      .stats { flex-direction: column; }
+      .step-num { width: 44px; height: 44px; min-width: 44px; font-size: 0.7rem; }
+      nav { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div class="stars-bg" id="stars"></div>
+<div class="pixel-grid"></div>
+<div class="scanlines"></div>
+
+<div class="page">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">⚔ CTRL+ALT+QUEST</div>
+    <div class="nav-badge">v1.0.0 · Windows</div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <!-- Shield logo (usa el logo real si lo tienes como logo.png junto al index.html) -->
+    <div class="shield-frame">
+      <!-- Si tienes el logo como archivo, descomenta esto y borra el SVG:
+      <img src="logo.png" alt="Ctrl+Alt+Quest Logo" onerror="this.style.display='none'"/>
+      -->
+      <!-- SVG placeholder pixel-art shield -->
+      <svg class="shield-svg" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 4 L92 18 L92 60 C92 88 50 116 50 116 C50 116 8 88 8 60 L8 18 Z" fill="#2d1b69" stroke="#f5a623" stroke-width="3"/>
+        <path d="M50 12 L84 24 L84 60 C84 82 50 106 50 106 C50 106 16 82 16 60 L16 24 Z" fill="#1a0f3d"/>
+        <!-- sword -->
+        <rect x="47" y="20" width="6" height="50" fill="#f5a623" rx="1"/>
+        <rect x="36" y="38" width="28" height="5" fill="#f5a623" rx="1"/>
+        <rect x="45" y="68" width="10" height="8" fill="#c47d0e" rx="1"/>
+        <!-- diamonds -->
+        <rect x="20" y="20" width="8" height="8" fill="#f5a623" transform="rotate(45 24 24)"/>
+        <rect x="72" y="20" width="8" height="8" fill="#f5a623" transform="rotate(45 76 24)"/>
+        <rect x="20" y="72" width="8" height="8" fill="#f5a623" transform="rotate(45 24 76)"/>
+        <rect x="72" y="72" width="8" height="8" fill="#f5a623" transform="rotate(45 76 76)"/>
+      </svg>
+    </div>
+
+    <h1 class="hero-title">Ctrl+Alt+Quest</h1>
+    <p class="hero-sub">Tu vida diaria. Tu aventura épica.</p>
+    <p class="hero-desc">
+      Transforma cada tarea, hábito y minuto de productividad en misiones RPG, 
+      XP, monedas y boss fights. La app de escritorio que hace que <em>quieras</em> ser productivo.
+    </p>
+
+    <a href="TU_LINK_DE_DESCARGA_AQUI" class="btn-download" id="downloadBtn">
+      <span class="icon">⬇</span>
+      DESCARGAR GRATIS
+    </a>
+
+    <p class="version-tag">Windows 10/11 · v1.0.0 · ~50 MB</p>
+  </section>
+
+  <div class="pixel-divider"></div>
+
+  <!-- STATS -->
+  <div class="stats reveal">
+    <div class="stat-item">
+      <div class="stat-num">20+</div>
+      <div class="stat-label">Niveles</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">5</div>
+      <div class="stat-label">Boss Fights</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Misiones</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Datos enviados</div>
+    </div>
+  </div>
+
+  <div class="pixel-divider"></div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <h2 class="section-title reveal">HABILIDADES DESBLOQUEADAS</h2>
+    <p class="section-subtitle reveal">Todo lo que obtienes al iniciar tu aventura</p>
+
+    <div class="features-grid">
+
+      <div class="feature-card reveal">
+        <span class="feature-icon">🖥️</span>
+        <div class="feature-name">MONITOREO AUTOMÁTICO</div>
+        <p class="feature-desc">Registra tiempo en apps, palabras escritas y clics en segundo plano con menos de 2% de CPU.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <span class="feature-icon">⚔️</span>
+        <div class="feature-name">BOSS FIGHTS</div>
+        <p class="feature-desc">5 mecánicas épicas — typing fury, click storm, focus endurance y más. Recompensas superiores al derrotarlos.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <span class="feature-icon">📜</span>
+        <div class="feature-name">MISIONES DINÁMICAS</div>
+        <p class="feature-desc">Generación automática basada en tu actividad. También puedes crear misiones personalizadas para la vida real.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <span class="feature-icon">🏆</span>
+        <div class="feature-name">XP & LOGROS</div>
+        <p class="feature-desc">Sistema de niveles, monedas virtuales, inventario de ítems y logros desbloqueables por hitos reales.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <span class="feature-icon">📊</span>
+        <div class="feature-name">ESTADÍSTICAS</div>
+        <p class="feature-desc">Visualiza tu progreso con gráficos detallados. Identifica tus hábitos y mejora cada semana.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <span class="feature-icon">🔒</span>
+        <div class="feature-name">100% PRIVADO</div>
+        <p class="feature-desc">0 conexiones externas verificadas. Todos tus datos se quedan en tu PC. Nunca se envía nada.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="pixel-divider"></div>
+
+  <!-- HOW IT WORKS -->
+  <section class="how">
+    <h2 class="section-title reveal">TUTORIAL DE INICIO</h2>
+    <p class="section-subtitle reveal">Tres pasos para comenzar tu aventura</p>
+
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Descarga e instala</h3>
+          <p>Ejecuta el instalador en Windows 10 u 11. No requiere configuración adicional.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Crea tu personaje</h3>
+          <p>Elige tu clase — Programador, Escritor, Estudiante y más. Cada clase tiene bonificaciones únicas.</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>¡Empieza a ganar XP!</h3>
+          <p>La app corre en segundo plano. Usa tu PC normalmente y observa cómo tus acciones se convierten en misiones y recompensas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="pixel-divider"></div>
+
+  <!-- FINAL CTA -->
+  <section class="final-cta">
+    <h2 class="cta-title reveal">¿Listo para convertir tu<br/><span>vida en un RPG</span>?</h2>
+    <p class="cta-sub reveal">Gratis · Solo Windows · Sin suscripciones</p>
+
+    <a href="https://www.mediafire.com/file/n7clvmto7hate9y/CtrlAltQuest_Online.rar/file" class="btn-download reveal">
+      <span class="icon">⬇</span>
+      DESCARGAR AHORA
+    </a>
+
+    <!-- Requisitos -->
+    <div class="reqs reveal">
+      <div class="reqs-title">⚙ REQUISITOS DEL SISTEMA</div>
+      <div class="req-item">Windows 10 o Windows 11 (64-bit)</div>
+      <div class="req-item">4 GB de RAM mínimo</div>
+      <div class="req-item">~50 MB de espacio en disco</div>
+      <div class="req-item">Conexión a internet (solo para activar cuenta)</div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">⚔ CTRL+ALT+QUEST v1.0.0</div>
+    <div class="footer-text">Hecho con ☕ y mucho XP · Desarrollado por Andrés Chérrez · 2025</div>
+  </footer>
+
+</div><!-- end .page -->
+
+<script>
+  // === GENERATE STARS ===
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `
+      width: ${size}px;
+      height: ${size}px;
+      top: ${Math.random() * 100}%;
+      left: ${Math.random() * 100}%;
+      --d: ${2 + Math.random() * 4}s;
+      --delay: ${Math.random() * 4}s;
+      opacity: ${Math.random() * 0.4 + 0.1};
+    `;
+    starsEl.appendChild(s);
+  }
+
+  // === SCROLL REVEAL ===
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // === DOWNLOAD CLICK COUNTER (visual only) ===
+  let clicks = 0;
+  document.querySelectorAll('.btn-download').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      // Si el link está vacío, lo prevenimos para demo
+      if (btn.getAttribute('href') === 'https://www.mediafire.com/file/n7clvmto7hate9y/CtrlAltQuest_Online.rar/file') {
+        e.preventDefault();
+        btn.textContent = '🎮  LINK PRÓXIMAMENTE';
+        setTimeout(() => {
+          btn.innerHTML = '<span class="icon">⬇</span> DESCARGAR GRATIS';
+        }, 2000);
+      }
+    });
+  });
+</script>
+</body>
+</html>
