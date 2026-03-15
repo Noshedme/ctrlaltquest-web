@@ -723,7 +723,7 @@
   <!-- FOOTER -->
   <footer>
     <div class="footer-logo">⚔ CTRL+ALT+QUEST v1.0.0</div>
-    <div class="footer-text">Hecho con ☕ y mucho XP · Desarrollado por Andrés Chérrez · 2026</div>
+    <div class="footer-text">Hecho con ☕ y mucho XP · Desarrollado por Andrés Chérrez · 2025</div>
   </footer>
 
 </div><!-- end .page -->
@@ -759,20 +759,7 @@
   }, { threshold: 0.1 });
   reveals.forEach(el => observer.observe(el));
 
-  // === DOWNLOAD CLICK COUNTER (visual only) ===
-  let clicks = 0;
-  document.querySelectorAll('.btn-download').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      // Si el link está vacío, lo prevenimos para demo
-      if (btn.getAttribute('href') === 'https://www.mediafire.com/file/n7clvmto7hate9y/CtrlAltQuest_Online.rar/file') {
-        e.preventDefault();
-        btn.textContent = '🎮  LINK PRÓXIMAMENTE';
-        setTimeout(() => {
-          btn.innerHTML = '<span class="icon">⬇</span> DESCARGAR GRATIS';
-        }, 2000);
-      }
-    });
-  });
+
 </script>
 </body>
 </html>
